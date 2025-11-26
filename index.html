@@ -87,41 +87,38 @@
 </div>
 
 <script>
-    // 这里是数据源。为了演示，我放了10个公认治安较好的城市。
-    // 你可以在这里无限添加更多城市。
-    const destinations = [
-        { city: "京都", country: "日本", desc: "古韵禅意，四季分明，治安极佳的古都。" },
-        { city: "雷克雅未克", country: "冰岛", desc: "世界尽头的冷酷仙境，极其安全，适合看极光。" },
-        { city: "哥本哈根", country: "丹麦", desc: "童话王国，自行车之都，生活节奏舒适。" },
-        { city: "新加坡", country: "新加坡", desc: "花园城市，全球治安典范，美食聚集地。" },
-        { city: "苏黎世", country: "瑞士", desc: "湖光山色，虽然昂贵但极其安全和干净。" },
-        { city: "温哥华", country: "加拿大", desc: "背山面海，气候宜人，自然与城市完美融合。" },
-        { city: "墨尔本", country: "澳大利亚", desc: "咖啡文化浓厚，艺术气息丰富，多次被评为最宜居城市。" },
-        { city: "里斯本", country: "葡萄牙", desc: "欧洲性价比极高，阳光充足，人们热情友好。" },
-        { city: "慕尼黑", country: "德国", desc: "巴伐利亚风情，治安良好的欧洲工业重镇。" },
-        { city: "迪拜", country: "阿联酋", desc: "沙漠中的奇迹，极其严格的法律保障了极高的安全性。" },
-        { city: "奥斯陆", country: "挪威", desc: "峡湾的门户，富裕且和平的北欧城市。" },
-        { city: "赫尔辛基", country: "芬兰", desc: "设计之都，安静内敛，世界上最幸福的国家之一。" }
-    ];
+    let destinations = []; // 先准备一个空桶子
+
+    // 网页一打开，就立刻去 GitHub 读取那个 json 文件
+    fetch('cities.json')
+        .then(response => response.json()) // 把读取到的东西变成 JSON
+        .then(data => {
+            destinations = data; // 把数据装进桶子里
+            console.log("数据加载成功！共有 " + destinations.length + " 个城市。");
+        })
+        .catch(error => console.error('哎呀，数据加载失败了:', error));
 
     function getRandomDestination() {
         const resultArea = document.getElementById('resultArea');
         
-        // 简单的加载动画效果
+        // 如果数据还没加载完（网速慢），或者桶子是空的
+        if (destinations.length === 0) {
+            resultArea.innerHTML = '<p>正在加载全球数据，请稍等...</p>';
+            return;
+        }
+
         resultArea.innerHTML = '<p>正在转动地球仪...</p>';
         
         setTimeout(() => {
-            // 核心逻辑：从数组长度中随机取一个数字
             const randomIndex = Math.floor(Math.random() * destinations.length);
             const selected = destinations[randomIndex];
 
-            // 更新界面
             resultArea.innerHTML = `
                 <div class="city-name">${selected.city}</div>
                 <div class="country-name">${selected.country}</div>
                 <div class="desc">${selected.desc}</div>
             `;
-        }, 500); // 延迟0.5秒显示结果，增加仪式感
+        }, 500);
     }
 </script>
 
