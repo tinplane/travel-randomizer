@@ -8,120 +8,112 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a; /* 更深的背景色，让地球更突出 */
+            background: #0a0a0a; 
             margin: 0;
-            color: #fff; /* 全局文字颜色改为白色 */
+            color: #fff; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center; /* 确保内容垂直居中 */
-            height: 100vh; /* 占满整个视口高度 */
-            overflow: hidden; /* 防止滚动条 */
-            position: relative; /* 方便子元素绝对定位 */
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden; 
+            position: relative; 
         }
-        /* 存放地球仪的容器，让它几乎占满整个屏幕 */
+        
         #globeViz {
-            width: 100vw; /* 占满屏幕宽度 */
-            height: 100vh; /* 占满屏幕高度 */
-            position: absolute; /* 绝对定位，作为背景 */
+            width: 100vw; 
+            height: 100vh; 
+            position: absolute; 
             top: 0;
             left: 0;
-            z-index: 1; /* 确保地球仪在底层 */
+            z-index: 1; 
         }
-        /* 信息展示和按钮的容器 */
+        
+        /* *** 核心修改区域：浮动面板样式和位置 *** */
         .container {
-            background: rgba(0, 0, 0, 0.4); /* 调整为更透明的暗色背景 */
-            backdrop-filter: blur(8px); /* 增加模糊效果，让内容更清晰 */
-            padding: 30px 40px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            /* 定位到右上角 */
+            position: absolute; 
+            top: 30px;         /* 离顶部 30px */
+            right: 30px;       /* 离右边 30px */
+            
+            /* 样式：透明、缩小、无阴影 */
+            background: rgba(0, 0, 0, 0.1); /* 极轻微的透明底色，用于增强对比 */
+            backdrop-filter: none;          /* 移除模糊效果 */
+            box-shadow: none;               /* 移除阴影 */
+            padding: 20px 30px;
+            border-radius: 10px;
+            max-width: 320px; /* 缩小宽度 */
+            width: auto;      /* 宽度自适应内容 */
+            
+            z-index: 10; 
             text-align: center;
-            max-width: 400px; /* 限制宽度 */
-            width: 80%;
-            z-index: 10; /* 确保文字在地球仪之上 */
-            position: absolute; /* 绝对定位 */
-            top: 50%; /* 垂直居中 */
-            left: 50%; /* 水平居中 */
-            transform: translate(-50%, -50%); /* 精确居中 */
-            color: #fff; /* 确保容器内的文字是白色 */
+            color: #fff; 
+            /* 增加一个轻微的边框，以防在亮色星球上文字对比度不够 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         h1 {
             color: #eee;
             margin-bottom: 15px;
-            font-size: 1.8em;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            font-size: 1.5em; /* 稍微缩小 */
+            text-shadow: 0 0 5px rgba(0,0,0,0.5); /* 增加文字阴影，提高在地球上的对比度 */
         }
         .intro-text {
             color: #ccc;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
         }
         .result-box {
-            margin: 25px 0;
-            min-height: 120px;
+            margin: 15px 0; /* 缩小垂直间距 */
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
         .city-name {
-            font-size: 2.6em;
+            font-size: 2.2em; /* 稍微缩小 */
             font-weight: bold;
-            color: #ffda79; /* 亮眼的金黄色 */
-            margin: 0;
-            text-shadow: 0 0 10px rgba(255,218,121,0.6); /* 发光效果 */
+            color: #ffda79; /* 金黄色 */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1); /* 加重文字阴影，保证浮动时清晰 */
             letter-spacing: 1px;
         }
         .country-name {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #bbb;
-            margin-top: 8px;
+            margin-top: 5px;
         }
         .desc {
-            margin-top: 20px;
-            font-size: 0.95em;
+            margin-top: 15px;
+            font-size: 0.85em; /* 略微缩小描述文字 */
             color: #ddd;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 10px 20px;
+            font-size: 1em;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.5);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3); /* 轻微的按钮阴影 */
             margin-top: 10px;
         }
         button:hover {
             background-color: #2980b9;
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.7);
-        }
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            transform: scale(1.05);
         }
 
-        /* 媒体查询：适配小屏幕设备，按钮和文字更紧凑 */
+        /* 媒体查询：适配小屏幕设备，面板放在顶部中央 */
         @media (max-width: 768px) {
             .container {
-                padding: 20px 30px;
+                top: 10px;
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%); /* 移动到顶部中央 */
                 max-width: 90%;
-            }
-            h1 {
-                font-size: 1.5em;
-            }
-            .city-name {
-                font-size: 2em;
-            }
-            .country-name {
-                font-size: 1em;
-            }
-            button {
-                padding: 12px 25px;
-                font-size: 1.1em;
             }
         }
     </style>
@@ -142,55 +134,65 @@
 </div>
 
 <script>
-    // --- 数据源 (注意：必须包含 lat 和 lng 坐标) ---
-    // 这里我先列举了6个分布在不同大洲的城市作为演示。
-    // 你以后添加数据时，需要去谷歌地图查一下它们的坐标。
-    const destinations = [
-        { city: "京都", country: "日本", lat: 35.0116, lng: 135.7681, desc: "古韵禅意，四季分明，治安极佳的古都。" },
-        { city: "雷克雅未克", country: "冰岛", lat: 64.1466, lng: -21.9426, desc: "世界尽头的冷酷仙境，极其安全，适合看极光。" },
-        { city: "新加坡", country: "新加坡", lat: 1.3521, lng: 103.8198, desc: "花园城市，全球治安典范，美食聚集地。" },
-        { city: "悉尼", country: "澳大利亚", lat: -33.8688, lng: 151.2093, desc: "歌剧院与海港大桥，充满活力的国际大都市。" },
-        { city: "温哥华", country: "加拿大", lat: 49.2827, lng: -123.1207, desc: "背山面海，气候宜人，自然与城市完美融合。" },
-        { city: "开普敦", country: "南非", lat: -33.9249, lng: 18.4241, desc: "桌山脚下的绝美海滨城市（需注意特定区域安全）。" }
-    ];
+    // --- 核心逻辑：数据读取 (与上一步骤相同，保持数据分离) ---
+    let destinations = []; 
+    const resultArea = document.getElementById('resultArea');
+
+    fetch('cities.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('数据加载失败，请检查 cities.json 文件名是否正确！');
+            }
+            return response.json(); 
+        })
+        .then(data => {
+            destinations = data; 
+            console.log(`成功加载 ${destinations.length} 个城市数据。`);
+        })
+        .catch(error => {
+            console.error('加载数据失败:', error);
+            resultArea.innerHTML = `<p style="color:red;">哎呀，数据加载失败了！ ${error.message}</p>`;
+        });
 
     // --- 3D 地球仪初始化 ---
     const world = Globe()
       (document.getElementById('globeViz'))
       .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-      .pointColor(() => '#ffda79') // 标记点的颜色改为金黄色，和文字呼应
+      .pointColor(() => '#ffda79') 
       .pointAltitude(0.1)     
       .pointRadius(0.5)
-      .backgroundColor('#00000000'); // 让地球仪背景完全透明，透出 body 的背景
+      .backgroundColor('#00000000'); 
       
-    // 设置初始视角（稍微离远一点看）
     world.pointOfView({ altitude: 2.5 });
-
-    // 自动旋转
     world.controls().autoRotate = true;
     world.controls().autoRotateSpeed = 0.5;
 
     // --- 核心功能：点击按钮飞向随机城市 ---
     function flyToRandomCity() {
-        const resultArea = document.getElementById('resultArea');
-        resultArea.innerHTML = '<p style="color:#ccc;">正在计算航线，准备起飞...</p>';
+        if (destinations.length === 0) {
+            resultArea.innerHTML = '<p style="color:red;">数据还在加载中，请稍等...</p>';
+            return;
+        }
         
-        world.controls().autoRotate = false; // 停止自动旋转
+        resultArea.innerHTML = '<p style="color:#ccc;">正在计算航线，准备起飞...</p>';
+        world.controls().autoRotate = false;
 
         setTimeout(() => {
             const randomIndex = Math.floor(Math.random() * destinations.length);
             const selected = destinations[randomIndex];
 
-            // 飞行到目标地点
+            if (typeof selected.lat === 'undefined' || typeof selected.lng === 'undefined') {
+                resultArea.innerHTML = `<p style="color:red;">数据错误：所选城市缺少经纬度坐标！</p>`;
+                return;
+            }
+
             world.pointOfView(
                 { lat: selected.lat, lng: selected.lng, altitude: 1.5 },
                 2500 
             );
 
-            // 在目标位置插上一个红点标记
             world.pointsData([{lat: selected.lat, lng: selected.lng}]);
 
-            // 更新下方的文字信息
             resultArea.innerHTML = `
                 <div class="city-name">${selected.city}</div>
                 <div class="country-name">${selected.country}</div>
@@ -202,9 +204,8 @@
     // 适应窗口大小变化
     window.addEventListener('resize', () => {
         world.width(window.innerWidth);
-        world.height(window.innerHeight); // 地球仪占满整个窗口
+        world.height(window.innerHeight); 
     });
-    // 页面加载后立即触发一次resize，确保地球仪初始大小正确
     window.dispatchEvent(new Event('resize'));
 </script>
 
