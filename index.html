@@ -3,53 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>下一站去哪？Travel Randomizer</title>
+    <title>下一站去哪？Travel Randomizer 3D</title>
+    <script src="//unpkg.com/globe.gl"></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+            /* 背景改为深色，让地球仪更好看 */
+            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
             margin: 0;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden; /* 防止滚动条出现 */
+        }
+        /* 存放地球仪的容器 */
+        #globeViz {
+            width: 100%;
+            height: 50vh; /* 占据屏幕一半高度 */
+            cursor: move; /* 鼠标放上去变成抓手 */
         }
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -10px 25px rgba(0,0,0,0.2);
             text-align: center;
-            max-width: 400px;
+            max-width: 500px;
             width: 90%;
+            position: relative;
+            top: -20px; /* 稍微往上提一点，盖住地球仪底部 */
+            flex-grow: 1;
         }
         h1 {
             color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 1.8em;
         }
         .result-box {
-            margin: 30px 0;
-            min-height: 150px;
+            margin: 20px 0;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
         .city-name {
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: bold;
             color: #e74c3c;
             margin: 0;
         }
         .country-name {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #7f8c8d;
             margin-top: 5px;
         }
         .desc {
             margin-top: 15px;
-            font-size: 0.95em;
+            font-size: 0.9em;
             color: #555;
             line-height: 1.5;
         }
@@ -57,62 +70,88 @@
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 12px 25px;
+            font-size: 1.1em;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.2s;
             box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
         }
         button:hover {
             background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-        button:active {
-            transform: translateY(0);
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
 
+<div id="globeViz"></div>
+
 <div class="container">
-    <h1>下一站去哪？✈️</h1>
-    <p>世界那么大，随机选一个安全的角落出发！</p>
+    <h1>🌏 下一站，转到哪？</h1>
+    <p>点击按钮，地球仪带你飞向下一个安全目的地！</p>
     
     <div class="result-box" id="resultArea">
-        <p style="color: #aaa;">点击按钮开始探索...</p>
+        <p style="color: #aaa;">准备好起飞了吗？</p>
     </div>
 
-    <button onclick="getRandomDestination()">告诉我答案</button>
+    <button onclick="flyToRandomCity()">起飞！告诉我答案</button>
 </div>
 
 <script>
-    let destinations = []; // 先准备一个空桶子
+    // --- 数据源 (注意：必须包含 lat 和 lng 坐标) ---
+    // 这里我先列举了6个分布在不同大洲的城市作为演示。
+    // 你以后添加数据时，需要去谷歌地图查一下它们的坐标。
+    const destinations = [
+        { city: "京都", country: "日本", lat: 35.0116, lng: 135.7681, desc: "古韵禅意，四季分明，治安极佳的古都。" },
+        { city: "雷克雅未克", country: "冰岛", lat: 64.1466, lng: -21.9426, desc: "世界尽头的冷酷仙境，极其安全，适合看极光。" },
+        { city: "新加坡", country: "新加坡", lat: 1.3521, lng: 103.8198, desc: "花园城市，全球治安典范，美食聚集地。" },
+        { city: "悉尼", country: "澳大利亚", lat: -33.8688, lng: 151.2093, desc: "歌剧院与海港大桥，充满活力的国际大都市。" },
+        { city: "温哥华", country: "加拿大", lat: 49.2827, lng: -123.1207, desc: "背山面海，气候宜人，自然与城市完美融合。" },
+        { city: "开普敦", country: "南非", lat: -33.9249, lng: 18.4241, desc: "桌山脚下的绝美海滨城市（需注意特定区域安全）。" }
+    ];
 
-    // 网页一打开，就立刻去 GitHub 读取那个 json 文件
-    fetch('cities.json')
-        .then(response => response.json()) // 把读取到的东西变成 JSON
-        .then(data => {
-            destinations = data; // 把数据装进桶子里
-            console.log("数据加载成功！共有 " + destinations.length + " 个城市。");
-        })
-        .catch(error => console.error('哎呀，数据加载失败了:', error));
+    // --- 3D 地球仪初始化 ---
+    const world = Globe()
+      (document.getElementById('globeViz'))
+      // 使用一张漂亮的地球卫星贴图
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+      // 稍微把地球调亮一点
+      .pointColor(() => 'red') // 标记点的颜色
+      .pointAltitude(0.1)     // 标记点的高度（稍微浮起来一点）
+      .pointRadius(0.5);      // 标记点的大小
 
-    function getRandomDestination() {
+    // 设置初始视角（稍微离远一点看）
+    world.pointOfView({ altitude: 2.5 });
+
+    // 自动旋转（为了好看，可选）
+    world.controls().autoRotate = true;
+    world.controls().autoRotateSpeed = 0.5;
+
+    // --- 核心功能：点击按钮飞向随机城市 ---
+    function flyToRandomCity() {
         const resultArea = document.getElementById('resultArea');
+        resultArea.innerHTML = '<p>正在计算航线，准备起飞...</p>';
         
-        // 如果数据还没加载完（网速慢），或者桶子是空的
-        if (destinations.length === 0) {
-            resultArea.innerHTML = '<p>正在加载全球数据，请稍等...</p>';
-            return;
-        }
+        // 1. 停止自动旋转，准备飞越
+        world.controls().autoRotate = false;
 
-        resultArea.innerHTML = '<p>正在转动地球仪...</p>';
-        
         setTimeout(() => {
+            // 2. 随机抽取一个城市
             const randomIndex = Math.floor(Math.random() * destinations.length);
             const selected = destinations[randomIndex];
 
+            // 3. 地球仪动作：飞向目标!
+            // pointOfView({ lat, lng, altitude }, duration_ms)
+            world.pointOfView(
+                { lat: selected.lat, lng: selected.lng, altitude: 1.5 }, // 目标坐标和飞行高度
+                2500 // 飞行时间：2.5秒
+            );
+
+            // 4. 地球仪动作：在目标位置插上一个红点标记
+            world.pointsData([{lat: selected.lat, lng: selected.lng}]);
+
+            // 5. 更新下方的文字信息
             resultArea.innerHTML = `
                 <div class="city-name">${selected.city}</div>
                 <div class="country-name">${selected.country}</div>
@@ -120,6 +159,12 @@
             `;
         }, 500);
     }
+
+    // 为了适应窗口大小变化
+    window.addEventListener('resize', () => {
+        world.width(window.innerWidth);
+        world.height(window.innerHeight / 2);
+    });
 </script>
 
 </body>
