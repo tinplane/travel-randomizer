@@ -8,41 +8,55 @@
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            /* 背景改为深色，让地球仪更好看 */
-            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
+            background: #0a0a0a; /* 更深的背景色，让地球更突出 */
             margin: 0;
-            color: #333;
+            color: #fff; /* 全局文字颜色改为白色 */
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden; /* 防止滚动条出现 */
+            justify-content: center; /* 确保内容垂直居中 */
+            height: 100vh; /* 占满整个视口高度 */
+            overflow: hidden; /* 防止滚动条 */
+            position: relative; /* 方便子元素绝对定位 */
         }
-        /* 存放地球仪的容器 */
+        /* 存放地球仪的容器，让它几乎占满整个屏幕 */
         #globeViz {
-            width: 100%;
-            height: 50vh; /* 占据屏幕一半高度 */
-            cursor: move; /* 鼠标放上去变成抓手 */
+            width: 100vw; /* 占满屏幕宽度 */
+            height: 100vh; /* 占满屏幕高度 */
+            position: absolute; /* 绝对定位，作为背景 */
+            top: 0;
+            left: 0;
+            z-index: 1; /* 确保地球仪在底层 */
         }
+        /* 信息展示和按钮的容器 */
         .container {
-            background: rgba(255, 255, 255, 0.9); /* 半透明背景 */
-            padding: 30px;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.4); /* 调整为更透明的暗色背景 */
+            backdrop-filter: blur(8px); /* 增加模糊效果，让内容更清晰 */
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
             text-align: center;
-            max-width: 500px;
-            width: 90%;
-            position: relative;
-            top: -20px; /* 稍微往上提一点，盖住地球仪底部 */
-            flex-grow: 1;
+            max-width: 400px; /* 限制宽度 */
+            width: 80%;
+            z-index: 10; /* 确保文字在地球仪之上 */
+            position: absolute; /* 绝对定位 */
+            top: 50%; /* 垂直居中 */
+            left: 50%; /* 水平居中 */
+            transform: translate(-50%, -50%); /* 精确居中 */
+            color: #fff; /* 确保容器内的文字是白色 */
         }
         h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
+            color: #eee;
+            margin-bottom: 15px;
             font-size: 1.8em;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .intro-text {
+            color: #ccc;
+            margin-bottom: 25px;
         }
         .result-box {
-            margin: 20px 0;
+            margin: 25px 0;
             min-height: 120px;
             display: flex;
             flex-direction: column;
@@ -50,36 +64,65 @@
             align-items: center;
         }
         .city-name {
-            font-size: 2.2em;
+            font-size: 2.6em;
             font-weight: bold;
-            color: #e74c3c;
+            color: #ffda79; /* 亮眼的金黄色 */
             margin: 0;
+            text-shadow: 0 0 10px rgba(255,218,121,0.6); /* 发光效果 */
+            letter-spacing: 1px;
         }
         .country-name {
-            font-size: 1.1em;
-            color: #7f8c8d;
-            margin-top: 5px;
+            font-size: 1.2em;
+            color: #bbb;
+            margin-top: 8px;
         }
         .desc {
-            margin-top: 15px;
-            font-size: 0.9em;
-            color: #555;
-            line-height: 1.5;
+            margin-top: 20px;
+            font-size: 0.95em;
+            color: #ddd;
+            line-height: 1.6;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 12px 25px;
-            font-size: 1.1em;
+            padding: 15px 30px;
+            font-size: 1.2em;
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.5);
+            margin-top: 10px;
         }
         button:hover {
             background-color: #2980b9;
-            transform: scale(1.05);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.7);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        /* 媒体查询：适配小屏幕设备，按钮和文字更紧凑 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 30px;
+                max-width: 90%;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .city-name {
+                font-size: 2em;
+            }
+            .country-name {
+                font-size: 1em;
+            }
+            button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
         }
     </style>
 </head>
@@ -89,10 +132,10 @@
 
 <div class="container">
     <h1>🌏 下一站，转到哪？</h1>
-    <p>点击按钮，地球仪带你飞向下一个安全目的地！</p>
+    <p class="intro-text">点击按钮，地球仪带你飞向下一个安全目的地！</p>
     
     <div class="result-box" id="resultArea">
-        <p style="color: #aaa;">准备好起飞了吗？</p>
+        <p style="color: #ccc;">准备好起飞了吗？</p>
     </div>
 
     <button onclick="flyToRandomCity()">起飞！告诉我答案</button>
@@ -114,44 +157,40 @@
     // --- 3D 地球仪初始化 ---
     const world = Globe()
       (document.getElementById('globeViz'))
-      // 使用一张漂亮的地球卫星贴图
       .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-      // 稍微把地球调亮一点
-      .pointColor(() => 'red') // 标记点的颜色
-      .pointAltitude(0.1)     // 标记点的高度（稍微浮起来一点）
-      .pointRadius(0.5);      // 标记点的大小
-
+      .pointColor(() => '#ffda79') // 标记点的颜色改为金黄色，和文字呼应
+      .pointAltitude(0.1)     
+      .pointRadius(0.5)
+      .backgroundColor('#00000000'); // 让地球仪背景完全透明，透出 body 的背景
+      
     // 设置初始视角（稍微离远一点看）
     world.pointOfView({ altitude: 2.5 });
 
-    // 自动旋转（为了好看，可选）
+    // 自动旋转
     world.controls().autoRotate = true;
     world.controls().autoRotateSpeed = 0.5;
 
     // --- 核心功能：点击按钮飞向随机城市 ---
     function flyToRandomCity() {
         const resultArea = document.getElementById('resultArea');
-        resultArea.innerHTML = '<p>正在计算航线，准备起飞...</p>';
+        resultArea.innerHTML = '<p style="color:#ccc;">正在计算航线，准备起飞...</p>';
         
-        // 1. 停止自动旋转，准备飞越
-        world.controls().autoRotate = false;
+        world.controls().autoRotate = false; // 停止自动旋转
 
         setTimeout(() => {
-            // 2. 随机抽取一个城市
             const randomIndex = Math.floor(Math.random() * destinations.length);
             const selected = destinations[randomIndex];
 
-            // 3. 地球仪动作：飞向目标!
-            // pointOfView({ lat, lng, altitude }, duration_ms)
+            // 飞行到目标地点
             world.pointOfView(
-                { lat: selected.lat, lng: selected.lng, altitude: 1.5 }, // 目标坐标和飞行高度
-                2500 // 飞行时间：2.5秒
+                { lat: selected.lat, lng: selected.lng, altitude: 1.5 },
+                2500 
             );
 
-            // 4. 地球仪动作：在目标位置插上一个红点标记
+            // 在目标位置插上一个红点标记
             world.pointsData([{lat: selected.lat, lng: selected.lng}]);
 
-            // 5. 更新下方的文字信息
+            // 更新下方的文字信息
             resultArea.innerHTML = `
                 <div class="city-name">${selected.city}</div>
                 <div class="country-name">${selected.country}</div>
@@ -160,11 +199,13 @@
         }, 500);
     }
 
-    // 为了适应窗口大小变化
+    // 适应窗口大小变化
     window.addEventListener('resize', () => {
         world.width(window.innerWidth);
-        world.height(window.innerHeight / 2);
+        world.height(window.innerHeight); // 地球仪占满整个窗口
     });
+    // 页面加载后立即触发一次resize，确保地球仪初始大小正确
+    window.dispatchEvent(new Event('resize'));
 </script>
 
 </body>
